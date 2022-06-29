@@ -1,4 +1,5 @@
-FROM ubuntu:latest
+# FROM ubuntu:latest
+FROM nvcr.io/nvidia/pytorch:21.06-py3
 
 RUN apt-get update && apt-get install -y \
 	wget \
