@@ -7,10 +7,10 @@ RUN apt-get update && apt-get install -y \
 
 #Install MINICONDA
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O Miniconda.sh && \
-	/bin/bash Miniconda.sh -b -p /opt/conda && \
+	/bin/bash Miniconda.sh -b -p /opt/miniconda3 && \
 	rm Miniconda.sh
 
-ENV PATH /opt/conda/bin:$PATH
+ENV PATH /opt/miniconda3/bin:$PATH
 
 # clone repository
 WORKDIR /
