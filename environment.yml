@@ -24,3 +24,6 @@ dependencies:
     # - reconchess==1.6.9
     - scikit-learn==1.1.1
     - scipy==1.8.1
+    - ipywidgets 
+    - widgetsnbextension 
+    - pandas-profiling
