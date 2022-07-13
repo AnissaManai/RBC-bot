@@ -13,13 +13,17 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH /opt/miniconda3/bin:$PATH
 
 # clone repository
-RUN cd /root \
-	&& git clone https://github.com/AnissaManai/RBC-bot.git \
-	&& cd /root/RBC-bot 
+WORKDIR /
+RUN git clone https://github.com/AnissaManai/RBC-bot.git
+
+WORKDIR /RBC-bot
 
 # Create conda Environment usinng yml file
-RUN conda env create -f /root/RBC-bot/environment.yml python=3.6 && \
+RUN conda env create -f environment.yml python=3.6 && \
 	/opt/miniconda3/envs/rbc/bin/pip install --user jupyterlab
+
+WORKDIR /RBC-bot
+RUN git pull
 
 CMD /opt/miniconda3/envs/rbc/bin/jupyter notebook --ip=0.0.0.0 --no-browser --allow-root --port=8888
 
