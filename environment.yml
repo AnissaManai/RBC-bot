@@ -27,3 +27,4 @@ dependencies:
     - ipywidgets 
     - widgetsnbextension 
     - pandas-profiling
+    - rtpt
