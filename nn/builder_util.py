@@ -7,7 +7,7 @@ Utility methods for building the neural network architectures.
 import math
 import torch
 from torch.nn import Sequential, Conv1d, Conv2d, BatchNorm2d, ReLU, LeakyReLU, Sigmoid, Tanh, Linear, Hardsigmoid, Hardswish,\
-    Module, AdaptiveAvgPool2d, BatchNorm1d
+    Module, AdaptiveAvgPool2d, BatchNorm1d, Dropout
 
 def get_act(act_type):
     """Wrapper method for different non linear activation functions"""
@@ -41,6 +41,7 @@ class _Stem(torch.nn.Module):
             Conv2d(in_channels=nb_input_channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1),
                    bias=False),
             BatchNorm2d(num_features=channels),
+            Dropout(p=0.2),
             get_act(act_type))
 
     def forward(self, x):
@@ -71,6 +72,7 @@ class _PolicyHead(Module):
         if self.select_policy_from_plane:
             self.body = Sequential(Conv2d(in_channels=channels, out_channels=channels, padding=1, kernel_size=(3, 3), bias=False),
                                    BatchNorm2d(num_features=channels),
+                                   Dropout(p=0.2),
                                    get_act(act_type),
                                    Conv2d(in_channels=channels, out_channels=policy_channels, padding=1, kernel_size=(3, 3), bias=False))
             self.nb_flatten = policy_channels*board_width*policy_channels
@@ -78,6 +80,7 @@ class _PolicyHead(Module):
         else:
             self.body = Sequential(Conv2d(in_channels=channels, out_channels=policy_channels, kernel_size=(1, 1), bias=False),
                                    BatchNorm2d(num_features=policy_channels),
+                                   Dropout(p=0.2),
                                    get_act(act_type))
 
             self.nb_flatten = board_height*board_width*policy_channels
