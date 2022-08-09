@@ -82,7 +82,7 @@ class AlphaZeroResnet(RBCModel):
 
         res_blocks = []
         for i in range(num_res_blocks):
-            res_blocks.append(ResidualBlock(channels, act_type))
+            res_blocks.append(ResidualBlock(channels, act_type, dropout=dropout))
 
         self.body = Sequential(_Stem(channels=channels, act_type=act_type,
                                      nb_input_channels=nb_input_channels, dropout=dropout),
