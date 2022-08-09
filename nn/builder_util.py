@@ -27,7 +27,7 @@ def get_act(act_type):
 
 
 class _Stem(torch.nn.Module):
-    def __init__(self, channels, act_type="relu", nb_input_channels=34):
+    def __init__(self, channels, act_type="relu", nb_input_channels=34, dropout = 0):
         """
         Definition of the stem proposed by the alpha zero authors
         :param channels: Number of channels for 1st conv operation
@@ -41,7 +41,7 @@ class _Stem(torch.nn.Module):
             Conv2d(in_channels=nb_input_channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1),
                    bias=False),
             BatchNorm2d(num_features=channels),
-            Dropout(p=0.2),
+            Dropout(p=dropout),
             get_act(act_type))
 
     def forward(self, x):
@@ -56,7 +56,7 @@ class _Stem(torch.nn.Module):
 
 class _PolicyHead(Module):
     def __init__(self, board_height=11, board_width=11, channels=256, policy_channels=2, n_labels=4992, act_type="relu",
-                 select_policy_from_plane=False):
+                 select_policy_from_plane=False, dropout = 0):
         """
         Definition of the policy head proposed by the alpha zero authors
         :param policy_channels: Number of channels for 1st conv operation in branch 0
@@ -72,7 +72,7 @@ class _PolicyHead(Module):
         if self.select_policy_from_plane:
             self.body = Sequential(Conv2d(in_channels=channels, out_channels=channels, padding=1, kernel_size=(3, 3), bias=False),
                                    BatchNorm2d(num_features=channels),
-                                   Dropout(p=0.2),
+                                   Dropout(p=dropout),
                                    get_act(act_type),
                                    Conv2d(in_channels=channels, out_channels=policy_channels, padding=1, kernel_size=(3, 3), bias=False))
             self.nb_flatten = policy_channels*board_width*policy_channels
@@ -80,7 +80,7 @@ class _PolicyHead(Module):
         else:
             self.body = Sequential(Conv2d(in_channels=channels, out_channels=policy_channels, kernel_size=(1, 1), bias=False),
                                    BatchNorm2d(num_features=policy_channels),
-                                   Dropout(p=0.2),
+                                   Dropout(p=dropout),
                                    get_act(act_type))
 
             self.nb_flatten = board_height*board_width*policy_channels

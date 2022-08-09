@@ -5,7 +5,7 @@ This file is based on a0_resnet.py  from https://gitlab.com/jweil/PommerLearn
 
 import torch
 import torch.nn as nn
-from torch.nn import Sequential, Conv2d, BatchNorm2d, ReLU, LeakyReLU, Sigmoid, Tanh, Linear, Hardsigmoid, Hardswish, Module
+from torch.nn import Sequential, Conv2d, BatchNorm2d, ReLU, LeakyReLU, Sigmoid, Tanh, Linear, Hardsigmoid, Hardswish, Module, Dropout
 
 from nn.builder_util import get_act, _Stem, _PolicyHead
 from nn.RBCModel import RBCModel
@@ -22,7 +22,7 @@ class ResidualBlock(torch.nn.Module):
     Definition of a residual block without any pooling operation
     """
 
-    def __init__(self, channels, act_type):
+    def __init__(self, channels, act_type, dropout):
         """
         :param channels: Number of channels used in the conv-operations
         :param act_type: Activation function to use
@@ -32,9 +32,11 @@ class ResidualBlock(torch.nn.Module):
 
         self.body = Sequential(Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1), bias=False),
                                BatchNorm2d(num_features=channels),
+                               Dropout(p=dropout),
                                get_act(act_type),
                                Conv2d(in_channels=channels, out_channels=channels, kernel_size=(3, 3), padding=(1, 1), bias=False),
                                BatchNorm2d(num_features=channels),
+                               Dropout(p=dropout),
                                get_act(act_type))
 
     def forward(self, x):
@@ -61,6 +63,7 @@ class AlphaZeroResnet(RBCModel):
         num_res_blocks=19,
         act_type="relu",
         select_policy_from_plane=False,
+        dropout = 0
     ):
         """
         :param n_labels: Number of labels the for the policy
@@ -82,12 +85,12 @@ class AlphaZeroResnet(RBCModel):
             res_blocks.append(ResidualBlock(channels, act_type))
 
         self.body = Sequential(_Stem(channels=channels, act_type=act_type,
-                                     nb_input_channels=nb_input_channels),
+                                     nb_input_channels=nb_input_channels, dropout=dropout),
                                *res_blocks)
 
         # create the heads which will be used in the fwd pass
         self.policy_head = _PolicyHead(board_height, board_width, channels, channels_policy_head, n_labels,
-                                       act_type, select_policy_from_plane)
+                                       act_type, select_policy_from_plane, dropout=dropout)
 
     def forward(self, flat_input):
         """
