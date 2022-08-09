@@ -24,7 +24,7 @@ RUN conda env create -f environment.yml python=3.6 && \
 
 ARG BUILD_TIMESTAMMP=unknown
 
-RUN /opt/miniconda3/envs/rbc/bin/conda install -c ostrokach-forge torch-geometric
+RUN /opt/miniconda3/envs/rbc/bin/conda install pyg -c pyg
 
 WORKDIR /RBC-bot
 RUN git pull
