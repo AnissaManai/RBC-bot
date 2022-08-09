@@ -54,7 +54,7 @@ class AlphaZeroResnet(RBCModel):
 
     def __init__(
         self,
-        n_labels=37,
+        n_labels=36,
         channels=256,
         nb_input_channels=21,
         board_height=8,
