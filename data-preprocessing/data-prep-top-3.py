@@ -3,23 +3,26 @@ import chess
 import chess.engine
 import numpy as np
 import os
-from utils import get_row_col
+from utils import get_row_col, get_sense_square
 import h5py
 from datetime import datetime
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 import json
+from main_config import main_config
 
 
 TOP3_BOTS = ['Fianchetto', 'StrangeFish2', 'penumbra']
+# TOP2_BOTS = ['Fianchetto', 'StrangeFish2']
 
-H5_TRAIN = "C:\\Users\\aniss\\OneDrive\\Dokumente\\Uni\\Semester4\\RBC\\RBC-Agent\\data\\RBC-data-2021-top3-wh-train.hdf5"
-H5_VAL = "C:\\Users\\aniss\\OneDrive\\Dokumente\\Uni\\Semester4\\RBC\\RBC-Agent\\data\\RBC-data-2021-top3-wh-val.hdf5"
-H5_TEST = "C:\\Users\\aniss\\OneDrive\\Dokumente\\Uni\\Semester4\\RBC\\RBC-Agent\\data\\RBC-data-2021-top3-wh-test.hdf5"
+H5_TRAIN = main_config['H5_TRAIN_PARTIAL']
+H5_VAL = main_config['H5_VAL_PARTIAL']
+H5_TEST = main_config['H5_TEST_PARTIAL']
 
+num_classes = []
 
 def get_file_names():
-    path = 'C:\\Users\\aniss\\OneDrive\\Dokumente\\Uni\\Semester4\\RBC\\neurips2021_RBC_game_logs\\neurips2021_histories\\'
+    path = main_config['DATA_FOLDER']
     json_files = [pos_json for pos_json in os.listdir(path) if pos_json.endswith('.json')]
     return json_files
 
@@ -28,26 +31,32 @@ def get_game_data(boards, senses, capture_squares, player):
     x = []
     y = []
     skip_board = False
+
+
     for idx, board in enumerate(boards):
+        board3d = np.zeros((21, 8, 8), dtype=np.float64)
         
         sense = senses[idx]
         board = chess.Board(board)
+        me = board.turn
+        flip = me == chess.BLACK
 
-        # this is the 3d matrix
-        board3d = np.zeros((21, 8, 8), dtype=np.float64)
 
         # Add the pieces's view on the matrix x 6 x 2
         # Plane for each piece type for each player 
         for piece in chess.PIECE_TYPES:
             for square in board.pieces(piece, chess.WHITE):
-                row, col = get_row_col(square, mirror = True)
+                row, col = get_row_col(square, flip = flip)
                 board3d[piece - 1][row][col] = 1
+                board3d[12][row][col] = 1
             for square in board.pieces(piece, chess.BLACK):
-                row, col = get_row_col(square, mirror = True)
+                row, col = get_row_col(square, flip = flip)
                 board3d[piece + 5][row][col] = 1
+                board3d[13][row][col] = 1
+                
 
         # Color x 1
-        if board.turn == chess.WHITE: board3d[12, :, :] = 1
+        if board.turn == chess.WHITE: board3d[14, :, :] = 1
 
         # En Passant Square x 1
         # if board.ep_square is not None: 
@@ -71,22 +80,12 @@ def get_game_data(boards, senses, capture_squares, player):
             opponent = "false"
             opponent_capture_square = capture_squares[opponent][idx - 1]
         if opponent_capture_square != None:
-            row, col = get_row_col(opponent_capture_square, mirror = True)
-            board3d[13][row][col] = 1
+            row, col = get_row_col(opponent_capture_square, flip = flip)
+            board3d[15][row][col] = 1
 
 
-        for piece in chess.PIECE_TYPES:
-            # Plane representing White Pieces  
-            for square in board.pieces(piece, chess.WHITE): 
-                row, col = get_row_col(square, mirror = True)
-                board3d[14][row][col] = 1
-            # Plane representing Black Pieces
-            for square in board.pieces(piece, chess.BLACK):
-                row, col = get_row_col(square, mirror = True)
-                board3d[15][row][col] = 1
 
-
-                # Add history of sense locations of the last 5 steps
+        # Add history of sense locations of the last 5 steps
         if idx > 0:
             plane_index = 16
             for i in range(1, 6): 
@@ -95,34 +94,29 @@ def get_game_data(boards, senses, capture_squares, player):
                     prev_sense = senses[prev_sens_idx]
 
                     if prev_sense != None: 
-                        row, col = get_row_col(prev_sense, mirror = True)
-                        offset = 0
-                        if row >= 2: offset = row + (row - 2)
-                        sense_square = prev_sense - (8 + offset)
-                        if sense_square in range(0, 37):
+                        row, col = get_row_col(prev_sense, flip = flip)
+                        if (row not in [0,7] and col not in [0,7]):
                             for delta_rank in [1, 0, -1]:
                                 for delta_file in [-1, 0, 1]:
                                     board3d[plane_index][row + delta_rank][col + delta_file] = 1
                     plane_index += 1
 
         sense_square = 0
-        sense_plane =  np.zeros((8, 8), dtype=np.float64)
         if sense != None: 
-            row, col = get_row_col(sense, mirror = True)
-            offset = 0
-            if row >= 2: offset = row + (row - 2)
-            sense_square = sense - (8 + offset)
-            if sense_square not in range(0, 37):
+            row, col = get_row_col(sense, flip = flip)
+            if (row not in [0,7] and col not in [0,7]):
+                sense_square = get_sense_square(sense, flip = flip)
+            else: 
                 skip_board = True
-            # else: 
-            #     for delta_rank in [1, 0, -1]:
-            #         for delta_file in [-1, 0, 1]:
-            #             sense_plane[row + delta_rank][col + delta_file] = 1
-            # print('sense ', sense)
-            # print('plane ', sense_plane)
+        else: 
+            skip_board = True
+
         if not skip_board:
             x.append(board3d)
             y.append(sense_square)
+            if sense_square not in num_classes: 
+                num_classes.append(sense_square)
+
         skip_board = False
             
     return x, y
@@ -145,7 +139,7 @@ def append_to_file(x_data, y_data, x, y):
 def create_dataset_file(filenames, x_data, y_data):
     script_dir = os.path.dirname(__file__)
     for f1 in tqdm(filenames): 
-        path = 'C:\\Users\\aniss\\OneDrive\\Dokumente\\Uni\\Semester4\\RBC\\neurips2021_RBC_game_logs\\neurips2021_histories\\' + str(f1)
+        path = main_config['DATA_FOLDER'] + str(f1)
         file_path = os.path.join(script_dir, path)
         with open(file_path, 'r') as infile: # open file 
             values = json.load(infile) # values in the file 
@@ -219,5 +213,6 @@ start = datetime.now()
 create_dataset_file(json_files, x_train_data, y_train_data)
 split_dataset(val_file, test_file)
 end = datetime.now()
+print('num classes ', len(num_classes))
 print('create dataset duration ', end - start)
 train_file.close()

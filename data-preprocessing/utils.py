@@ -1,23 +1,39 @@
 from cProfile import label
+from traceback import print_tb
 from turtle import position
 import numpy as np
 
 
-def get_row_col(position, mirror=False):
+def get_row_col(position, flip = False):
     """
     Maps a value [0,63] to its row and column index
     :param position: Position id which is an integer [0,63]
-    :param mirror: Returns the indices for the mirrored board
+    :param flip: Returns the indices for the flipped board
     :return: Row and columns index
     """
     # returns the column and row index of a given position
     row = position // 8
     col = position % 8
 
-    if mirror:
+    if flip: 
         row = 7 - row
+        col = 7 - col
 
     return row, col
+
+def get_sense_square(position, flip = False):
+    row, col = get_row_col(position, flip)
+    offset = 0
+    sense_square = None
+    if row >= 2: offset = row + (row - 2)
+    if flip: 
+        sense_square = 63 - position - (9 + offset)
+    else: 
+        sense_square = position - (9 + offset)
+    return sense_square
+
+# sense_square = get_sense_square(53, True)
+# print('sense square ', sense_square)
 
 
 def get_board_position_index(row, col, mirror=False):
