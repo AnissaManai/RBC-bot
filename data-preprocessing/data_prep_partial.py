@@ -16,9 +16,9 @@ from main_config import main_config
 TOP3_BOTS = ['Fianchetto', 'StrangeFish2', 'penumbra']
 # TOP2_BOTS = ['Fianchetto', 'StrangeFish2']
 
-H5_TRAIN = main_config['H5_TRAIN']
-H5_VAL = main_config['H5_VAL']
-H5_TEST = main_config['H5_TEST']
+H5_TRAIN = main_config['H5_TRAIN_PARTIAL']
+H5_VAL = main_config['H5_VAL_PARTIAL']
+H5_TEST = main_config['H5_TEST_PARTIAL']
 
 num_classes = []
 

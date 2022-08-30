@@ -1,10 +1,8 @@
-from cProfile import label
-from traceback import print_tb
-from turtle import position
 import numpy as np
+import itertools
 
 
-def get_row_col(position, flip = False):
+def get_row_col(position, flip = False, width = 8):
     """
     Maps a value [0,63] to its row and column index
     :param position: Position id which is an integer [0,63]
@@ -12,12 +10,12 @@ def get_row_col(position, flip = False):
     :return: Row and columns index
     """
     # returns the column and row index of a given position
-    row = position // 8
-    col = position % 8
+    row = position // width
+    col = position % width
 
     if flip: 
-        row = 7 - row
-        col = 7 - col
+        row = width - 1 - row
+        col = width - 1 - col
 
     return row, col
 
@@ -25,29 +23,29 @@ def get_sense_square(position, flip = False):
     row, col = get_row_col(position, flip)
     offset = 0
     sense_square = None
-    if row >= 2: offset = row + (row - 2)
+    if row >= 2: offset = row + (row - 2) 
     if flip: 
-        sense_square = 63 - position - (9 + offset)
+        sense_square = (63 - position) - offset - 9
     else: 
-        sense_square = position - (9 + offset)
+        sense_square = position - offset - 9
     return sense_square
 
-# sense_square = get_sense_square(53, True)
-# print('sense square ', sense_square)
+# pos = list(itertools.chain(range(9, 15), range(17, 23), range(25, 31), range(33, 39), range(41, 47), range(49, 55)))
 
 
-def get_board_position_index(row, col, mirror=False):
+def get_board_position_index(row, col, flip=False, width = 8):
     """
     Maps a row and column index to the integer value [0, 63].
     :param row: Row index of the square
     :param col: Column index of the square
-    :param mirror: Returns integer value for a mirrored board
+    :param flip: Returns integer value for a flipped board
     :return:
     """
-    if mirror:
-        row = 7 - row
+    if flip:
+        row = (width - 1) - row
 
-    return (row * 8) + col
+    return (row * width) + col
+
 
 
 def get_sense_plane(sense_pos):
