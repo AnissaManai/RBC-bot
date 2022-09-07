@@ -10,6 +10,7 @@ dependencies:
   - hdf5=1.10.6
   - ipykernel=6.9.1
   - ipython=8.3.0
+  - jupiter
   - jupyter_client=7.2.2
   - jupyter_core=4.10.0
   - matplotlib=3.5.1
@@ -31,4 +32,3 @@ dependencies:
     - pandas-profiling
     - rtpt==0.0.4
     - torchgeometry
-    - gym==0.25.2

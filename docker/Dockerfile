@@ -19,8 +19,7 @@ RUN git clone https://github.com/AnissaManai/RBC-bot.git
 WORKDIR /RBC-bot
 
 # Create conda Environment usinng yml file
-RUN conda env create -f environment.yml python=3.6 && \
-	/opt/miniconda3/envs/rbc/bin/pip install --user jupyterlab 
+RUN conda env create -f environment.yml python=3.6
 	
 ARG BUILD_TIMESTAMMP=unknown
 
