@@ -5,6 +5,11 @@
     Copyright (c) 2021, The Johns Hopkins University Applied Physics Laboratory LLC
 """
 
+import os
+import sys
+module_path = os.path.abspath(os.path.join('..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
 
 import random
 from collections import defaultdict
