@@ -20,11 +20,11 @@ WORKDIR /RBC-bot
 
 # Create conda Environment usinng yml file
 RUN conda env create -f environment.yml python=3.6 && \
-	/opt/miniconda3/envs/rbc/bin/pip install --user jupyterlab && \
-	/opt/minicinda3/bin/activate /opt/miniconda3/envs/rbc
+	/opt/miniconda3/envs/rbc/bin/pip install --user jupyterlab 
 	
 ARG BUILD_TIMESTAMMP=unknown
 
+RUN conda activate /opt/miniconda3/envs/rbc
 
 WORKDIR /RBC-bot
 RUN git pull
