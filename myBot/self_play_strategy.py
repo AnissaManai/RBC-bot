@@ -26,8 +26,8 @@ from tqdm import tqdm
 
 from myBot.rbc_agent_core import RBCAgentCore
 
+from myBot.utilities import stockfish
 from myBot.utilities.utils import (
-    stockfish,
     simulate_move,
     generate_rbc_moves,
     generate_moves_without_opponent_pieces,
