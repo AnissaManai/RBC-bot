@@ -24,10 +24,10 @@ RUN conda env create -f environment.yml python=3.6 && \
 	
 ARG BUILD_TIMESTAMMP=unknown
 
-RUN source /opt/miniconda3/bin/activate /opt/miniconda3/envs/rbc
-
 WORKDIR /RBC-bot
 RUN git pull
+
+RUN source /opt/miniconda3/bin/activate /opt/miniconda3/envs/rbc
 
 
 
