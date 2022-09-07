@@ -27,12 +27,16 @@ ARG BUILD_TIMESTAMMP=unknown
 WORKDIR /RBC-bot
 RUN git pull
 
+SHELL ["/bin/bash","-c"]
+RUN conda init
+RUN echo 'conda activate rbc' >> ~/.bashrc
+
 EXPOSE 8888
 
 # CMD /opt/miniconda3/envs/rbc/bin/jupyter notebook --ip=0.0.0.0 --no-browser --allow-root --port=8888
 
 
-CMD ["conda", "run", "-n", "rbc", "/opt/miniconda3/envs/rbc/jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
+CMD ["conda", "run", "-n", "rbc", "jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
 
 
 
