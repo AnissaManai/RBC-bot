@@ -24,19 +24,19 @@ RUN conda env create -f environment.yml python=3.6 && \
 	
 ARG BUILD_TIMESTAMMP=unknown
 
-SHELL ["conda", "run", "-n", "rbc", "/bin/bash", "-c"]
+
 
 WORKDIR /RBC-bot
 RUN git pull
 
-
+SHELL ["conda", "run", "--no-capture-output", "-n", "rbc", "/bin/bash", "-c"]
 
 EXPOSE 8888
 
-CMD /opt/miniconda3/envs/rbc/bin/jupyter notebook --ip=0.0.0.0 --no-browser --allow-root --port=8888
+# CMD /opt/miniconda3/envs/rbc/bin/jupyter notebook --ip=0.0.0.0 --no-browser --allow-root --port=8888
 
 
-# CMD ["conda", "run", "-n", "rbc", "jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
+CMD ["conda", "run", "--no-capture-output", "-n", "rbc", "jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
 
 
 
