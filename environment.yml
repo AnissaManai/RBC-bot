@@ -29,5 +29,6 @@ dependencies:
     - ipywidgets 
     - widgetsnbextension 
     - pandas-profiling
-    - rtpt
+    - rtpt==0.0.4
     - torchgeometry
+    - gym==0.25.2
