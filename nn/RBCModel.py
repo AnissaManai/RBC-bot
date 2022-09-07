@@ -9,8 +9,9 @@ from abc import ABCMeta
 
 class RBCModel(nn.Module, metaclass=ABCMeta):
     def training_step(self, criterion,  data, labels):
-        out = self(data)   # Generate predictions
-        loss = criterion(out, labels) # Calculate loss
+        latent_pi, latent_vf , _= self._get_latent(data)   # Generate predictions
+        prediction = self.action_net(latent_pi)
+        loss = criterion(prediction, labels) # Calculate loss
         return loss
 
     def validation_step(self, criterion, data, labels):
