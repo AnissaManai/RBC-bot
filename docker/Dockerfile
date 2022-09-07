@@ -24,12 +24,12 @@ RUN conda env create -f environment.yml python=3.6 && \
 	
 ARG BUILD_TIMESTAMMP=unknown
 
+SHELL ["conda", "run", "-n", "rbc", "/bin/bash", "-c"]
+
 WORKDIR /RBC-bot
 RUN git pull
 
-SHELL ["/bin/bash","-c"]
-RUN conda init
-RUN echo 'conda activate rbc' >> ~/.bashrc
+
 
 EXPOSE 8888
 
