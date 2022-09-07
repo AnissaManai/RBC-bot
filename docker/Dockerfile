@@ -24,8 +24,12 @@ RUN conda env create -f environment.yml python=3.6 && \
 	
 ARG BUILD_TIMESTAMMP=unknown
 
+RUN conda activate rbc
+
 WORKDIR /RBC-bot
 RUN git pull
+
+
 
 CMD /opt/miniconda3/envs/rbc/bin/jupyter notebook --ip=0.0.0.0 --no-browser --allow-root --port=8888
 
