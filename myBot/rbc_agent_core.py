@@ -20,7 +20,9 @@ import chess.engine
 from reconchess import Player, Color, GameHistory, WinReason, Square
 from tqdm import tqdm
 
-from myBot.utilities import (
+
+
+from myBot.utilities.utils import (
     board_matches_sense,
     update_board_by_move,
     populate_next_board_set,
