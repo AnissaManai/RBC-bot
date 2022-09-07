@@ -180,18 +180,17 @@ class RBCEnv(gym.Env):
                     piece_color = piece.color
                     piece_type = piece.piece_type
                     if piece_color == opponent_color: 
-                        match piece_type: 
-                            case chess.PAWN:
-                                reward += 1
-                            case chess.KNIGHT:
-                                reward += 3
-                            case chess.BISHOP:
-                                reward += 3
-                            case chess.ROOK: 
-                                reward += 5
-                            case chess.QUEEN: 
-                                reward += 9
-                            case chess.KING: 
+                        if piece_type == chess.PAWN:
+                            reward += 1  
+                        elif piece_type == chess.KNIGHT:
+                            reward += 3
+                        elif piece_type == chess.BISHOP:
+                            reward += 3
+                        elif piece_type == chess.ROOK: 
+                            reward += 5
+                        elif piece_type == chess.QUEEN: 
+                            reward += 9
+                        elif piece_type == chess.KING: 
                                 # Encourage the agent to sense the king as the number of opt pieces is decreasing
                                 num_pieces_left = self.num_captured_white_pieces if opponent_color == chess.WHITE else self.num_captured_black_pieces
                                 print('KING REWARD ', 1 - (num_pieces_left / 16) ** 0.5)
