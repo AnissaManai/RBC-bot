@@ -15,7 +15,7 @@ class RBCEnv(gym.Env):
         self.action_space = spaces.Discrete(36)
         self.observation_space = spaces.Box(low=0, high=1, shape=(21, 8,8), dtype = np.uint8)
 
-        self.reward_range = (-1,1)
+        self.reward_range = (-200, 200)
 
         self.current_episode = 0
         self.success_episode = []
