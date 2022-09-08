@@ -22,11 +22,14 @@ ENV PATH /opt/miniconda3/bin:$PATH
 WORKDIR /
 RUN git clone https://github.com/AnissaManai/RBC-bot.git
 
+WORKDIR /RBC-bot
+
 # Create conda Environment usinng yml file
 RUN conda env create -f environment.yml python=3.6
 	
 ARG BUILD_TIMESTAMMP=unknown
 
+WORKDIR /
 #### Compile stockfish. outputs to /Stockfish/src/stockfish ####
 RUN mkdir /Stockfish && \
     cd ~ && \
