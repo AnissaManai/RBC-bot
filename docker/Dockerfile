@@ -31,15 +31,13 @@ ARG BUILD_TIMESTAMMP=unknown
 
 WORKDIR /
 #### Compile stockfish. outputs to /Stockfish/src/stockfish ####
-RUN mkdir /Stockfish && \
-    cd ~ && \
-	git clone https://github.com/official-stockfish/Stockfish.git && \
+RUN git clone https://github.com/official-stockfish/Stockfish.git && \
 	cd Stockfish && \
 	git checkout tags/sf_11 && \
 	cd src && \
 	CXXFLAGS='-static' make -j2 build ARCH=x86-64
 
-ENV STOCKFISH_EXECUTABLE /Stockfish/Stockfish/src/stockfish 
+ENV STOCKFISH_EXECUTABLE /Stockfish/src/stockfish
 
 WORKDIR /RBC-bot
 RUN git pull
