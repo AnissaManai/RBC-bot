@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from reconchess import LocalGame, Player, Game, Square
 from myBot import SelfPlayBot
-from myBot.utilities import generate_input_for_model, revert_sense_square
+from myBot.utilities.utils import generate_input_for_model, revert_sense_square
 
 class RBCEnv(gym.Env):
 
