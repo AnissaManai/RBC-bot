@@ -1,24 +1,26 @@
-FROM nvcr.io/nvidia/pytorch:21.06-py3 as buildStockfish
-# FROM ubuntu:latest as buildStockfish
+FROM nvcr.io/nvidia/pytorch:21.06-py3
+# FROM ubuntu:latest
+
+RUN apt-get update && apt-get install -y \
+	gcc \
+	g++ \
+	curl \
+	wget \
+    git \
+    make \
+    git
 
 #### Compile stockfish. outputs to /Stockfish/src/stockfish ####
-RUN git clone https://github.com/official-stockfish/Stockfish.git && \
+RUN mkdir /Stockfish && \
+    cd ~ && \
+	git clone https://github.com/official-stockfish/Stockfish.git && \
 	cd Stockfish && \
 	git checkout tags/sf_11 && \
 	cd src && \
 	CXXFLAGS='-static' make -j2 build ARCH=x86-64
 
-
-FROM nvcr.io/nvidia/pytorch:21.06-py3
-# FROM ubuntu:latest
-# RUN apt-get update && apt-get install -y \
-# 	wget \
-#     git
-
-#### Copy binaries, add STOCKFISH_EXECUTABLE as env ####
-WORKDIR /app
-COPY --from=buildStockfish /Stockfish/src/stockfish ./
-ENV STOCKFISH_EXECUTABLE=stockfish
+# COPY --from=buildStockfish ./Stockfish/src/stockfish ./
+ENV STOCKFISH_EXECUTABLE /Stockfish/Stockfish/src/stockfish ./
 
 #Install MINICONDA
 RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O Miniconda.sh && \
