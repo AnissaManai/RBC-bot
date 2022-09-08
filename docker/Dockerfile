@@ -1,6 +1,6 @@
 # FROM nvcr.io/nvidia/pytorch:21.06-py3
 #### Compile stockfish. outputs to /Stockfish/src/stockfish ####
-FROM nvcr.io/nvidia/pytorch:21.06-py3 as buildStockfish
+FROM alpine:3.15 as buildStockfish 
 RUN apk add gcc \
     g++ \
     make \
