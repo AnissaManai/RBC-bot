@@ -39,8 +39,7 @@ RUN mkdir /Stockfish && \
 	cd src && \
 	CXXFLAGS='-static' make -j2 build ARCH=x86-64
 
-# COPY --from=buildStockfish ./Stockfish/src/stockfish ./
-ENV STOCKFISH_EXECUTABLE /Stockfish/Stockfish/src/stockfish ./
+ENV STOCKFISH_EXECUTABLE /Stockfish/Stockfish/src/stockfish 
 
 WORKDIR /RBC-bot
 RUN git pull
