@@ -15,9 +15,10 @@ class RBCModel(nn.Module, metaclass=ABCMeta):
         return loss
 
     def validation_step(self, criterion, data, labels):
-        out = self(data)                    # Generate predictions
-        loss = criterion(out, labels)   # Calculate loss
-        _, preds = torch.max(out, dim=1)
+        latent_pi, latent_vf , _= self._get_latent(data)   # Generate predictions
+        prediction = self.action_net(latent_pi)
+        loss = criterion(prediction, labels)   # Calculate loss
+        _, preds = torch.max(prediction, dim=1)
         acc = torch.tensor(torch.sum(preds == labels).item() / len(preds)) # Calculate accuracy
         return {'val_loss': loss.detach(), 'val_acc': acc}
         
