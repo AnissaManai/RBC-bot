@@ -21,7 +21,6 @@ from reconchess import Player, Color, GameHistory, WinReason, Square
 from tqdm import tqdm
 
 
-
 from myBot.utilities.utils import (
     board_matches_sense,
     update_board_by_move,
