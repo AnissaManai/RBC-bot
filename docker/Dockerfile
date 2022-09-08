@@ -6,13 +6,12 @@ RUN apk add gcc \
     make \
     git \
     curl && \
-  git clone https://github.com/official-stockfish/Stockfish.git && \
-  cd Stockfish/src && \
-  CXXFLAGS='-static' make -j2 build ARCH=x86-64
+	git clone https://github.com/official-stockfish/Stockfish.git && \
+	cd Stockfish/src && \
+	CXXFLAGS='-static' make -j2 build ARCH=x86-64
 
 
 FROM nvcr.io/nvidia/pytorch:21.06-py3
-
 RUN apt-get update && apt-get install -y \
 	wget \
     git
