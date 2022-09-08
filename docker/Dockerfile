@@ -6,7 +6,6 @@ RUN apk add gcc \
     make \
     git \
     curl && \
-	git config --global --unset http.proxy && \
 	git clone https://github.com/official-stockfish/Stockfish.git && \
 	cd Stockfish/src && \
 	CXXFLAGS='-static' make -j2 build ARCH=x86-64
