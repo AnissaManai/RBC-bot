@@ -251,7 +251,7 @@ class EruditeBot(RBCAgentCore):
                     our_color, 
                     sense_actions: List[Square], 
                     moves: List[chess.Move], 
-                    capture_square: int | None,
+                    capture_square,
                     sense_history: List, 
                     seconds_left: float):
 
