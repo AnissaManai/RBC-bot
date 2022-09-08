@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import chess.engine
 
-from myBot.utilities import generate_rbc_moves, count_set_bits, PIECE_VALUES
+from utilities.utils import generate_rbc_moves, count_set_bits, PIECE_VALUES
 
 
 @dataclass

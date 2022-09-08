@@ -27,8 +27,6 @@ WORKDIR /RBC-bot
 # Create conda Environment usinng yml file
 RUN conda env create -f environment.yml python=3.6
 	
-ARG BUILD_TIMESTAMMP=unknown
-
 WORKDIR /
 #### Compile stockfish. outputs to /Stockfish/src/stockfish ####
 RUN git clone https://github.com/official-stockfish/Stockfish.git && \
@@ -38,6 +36,8 @@ RUN git clone https://github.com/official-stockfish/Stockfish.git && \
 	CXXFLAGS='-static' make -j2 build ARCH=x86-64
 
 ENV STOCKFISH_EXECUTABLE /Stockfish/src/stockfish
+
+ARG BUILD_TIMESTAMMP=unknown
 
 WORKDIR /RBC-bot
 RUN git pull
