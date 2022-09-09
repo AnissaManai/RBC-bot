@@ -32,6 +32,7 @@ WORKDIR /
 RUN wget https://www.dropbox.com/sh/75gzfgu7qo94pvh/AAAtWIKGvQvGih-dz6xb-CHDa/Stockfish%2011/stockfish-11-linux.zip?dl=0 && \
 	unzip stockfish-11-linux.zip?dl=0 && \
 	cd /stockfish-11-linux/Linux && \
+	ls && \
 	chmod +x stockfish_20011801_x64_bmi
 
 ENV STOCKFISH_EXECUTABLE /stockfish-11-linux/Linux/stockfish_20011801_x64_bmi
