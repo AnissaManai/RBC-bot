@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.nn import Sequential, Conv2d, BatchNorm2d, ReLU, LeakyReLU, Sigmoid, Tanh, Linear, Hardsigmoid, Hardswish, Module, Dropout
 
 from nn.builder_util import get_act, _Stem, _PolicyHead
-from nn.RBCModel_SL import RBCModelSL
+from nn.RBCModel import RBCModel
 
 
 
@@ -49,7 +49,7 @@ class ResidualBlock(torch.nn.Module):
         return x + self.body(x)
 
 
-class AlphaZeroResnet(RBCModelSL):
+class AlphaZeroResnet(RBCModel):
     """ Creates the alpha zero net description based on the given parameters."""
 
     def __init__(
