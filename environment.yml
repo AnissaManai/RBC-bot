@@ -32,3 +32,4 @@ dependencies:
     - pandas-profiling
     - rtpt==0.0.4
     - torchgeometry
+    - tensorboard
