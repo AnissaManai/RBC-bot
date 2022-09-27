@@ -21,6 +21,7 @@ dependencies:
   - tqdm=4.64.0
   - gym
   - stable-baselines3
+  - tensorboard
   - zipp
   - pip:
     - chess==1.9.2
