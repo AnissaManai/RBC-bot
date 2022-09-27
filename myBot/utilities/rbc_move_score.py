@@ -93,8 +93,8 @@ def calculate_score(
     try:
         engine_result = engine.analyse(
             next_board,
-            chess.engine.Limit(depth=score_config.search_depth),
-            options={"contempt": score_config.contempt},
+            chess.engine.Limit(depth=score_config.search_depth)
+            # options={"contempt": score_config.contempt},
         )["score"].pov(pov)
 
         if type(engine_result) == chess.engine.Cp:  # if the result is a centipawn rating

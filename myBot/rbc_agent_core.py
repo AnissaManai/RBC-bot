@@ -6,6 +6,7 @@
 """
 
 import os
+from random import sample
 import sys
 module_path = os.path.abspath(os.path.join('..'))
 if module_path not in sys.path:
@@ -30,11 +31,15 @@ from myBot.utilities.utils import (
 from myBot.utilities.player_logging import create_main_logger
 from myBot.utilities.timing import Timer
 
+# Parameters for switching to the emergency backup plan
+BOARD_SET_LIMIT = 10000  # number of boards in set at which we stop processing and revert to backup plan
+# AVG_BOARD_EXP = 33  # number of moves on each board: mean 33, std 10 according to ~320k boards in logs
+
 class RBCAgentCore(Player):
     def __init__(
         self,
         log_to_file: bool,
-        rc_disable_pbar: bool 
+        rc_disable_pbar: bool
     ) -> None:
 
         self.board: chess.Board = None
@@ -53,6 +58,12 @@ class RBCAgentCore(Player):
         self.logger = create_main_logger(log_to_file=log_to_file)
         self.logger.debug("A new StrangeFish player was initialized.")
 
+    # def _emergency_plan(self, choices):  # Switch to emergency backup plan
+    #     self.boards = set()
+    #     self.next_turn_boards = {None: set()}
+    #     self.move_strategy = contingency_strategy(choices = choices)
+    #     setattr(self, 'while_we_wait', None)
+
 
     def handle_game_start(self, color: Color, board: chess.Board, opponent_name: str):
         color_name = chess.COLOR_NAMES[color]
@@ -64,10 +75,12 @@ class RBCAgentCore(Player):
         self.turn_num = 0
         self.board = board
 
+
     
     def handle_opponent_move_result(self, captured_my_piece: bool, capture_square: Optional[Square]):
         self.turn_num += 1
         self.logger.debug(f"Starting turn {self.turn_num}.")
+        self.capture_square = capture_square
 
         # Do not "handle_opponent_move_result" if no one has moved yet
         if self.turn_num == 1 and self.color == chess.WHITE:
@@ -79,12 +92,25 @@ class RBCAgentCore(Player):
         else:
             self.logger.debug("Opponent's move was not a capture.")
 
-        print('Number of boards after last turn ', self.color, 'IS ', len(self.boards))
+        # print('Number of boards after last turn ', self.color, 'IS ', len(self.boards))
+
+        # Check for board set over-growth and switch to emergency plan if needed
+        # if not captured_my_piece and \
+        #         (len(self.next_turn_boards[None]) + (AVG_BOARD_EXP * len(self.boards))) > BOARD_SET_LIMIT:
+        #     self.logger.warning("Board set grew too large, switching to contingency plan. "
+        #                         "Set size expected to grow to %d; limit is %d",
+        #                         len(self.next_turn_boards[None]) + (AVG_BOARD_EXP * len(self.boards)),
+        #                         BOARD_SET_LIMIT)
+        #     self._emergency_plan()
 
         # If creation of new board set didn't complete during op's turn (self.boards will not be empty)
+
+        
         if self.boards:
+            if len(self.boards) > BOARD_SET_LIMIT:  
+                self.boards = sample(self.boards, k= BOARD_SET_LIMIT)
             new_board_set, boards_in_check = populate_next_board_set(
-                self.boards, self.color, rc_disable_pbar=self.rc_disable_pbar
+                self.boards, self.color, rc_disable_pbar=False
             )
             self.priority_boards |= boards_in_check
             for square in new_board_set.keys():
@@ -97,9 +123,9 @@ class RBCAgentCore(Player):
             "Finished expanding and filtering the set of possible board states. "
             f"There are {len(self.boards)} possible boards "
             f"at the start of our turn {self.turn_num}."
-        )
+            )
 
-        print('Finished expanding and filtering the set of possible board states. There are', len(self.boards), 'possible boards at the start of our turn', self.turn_num)
+        # print('Finished expanding and filtering the set of possible board states. There are', len(self.boards), 'possible boards at the start of our turn', self.turn_num)
 
 
     def choose_sense(
@@ -125,7 +151,7 @@ class RBCAgentCore(Player):
 
         self.sense_history.insert(0, sense_choice)
         self.sense_history.pop()
-        print('sense history ', self.sense_history)
+        # print('sense history ', self.sense_history)
 
         return sense_choice
 
@@ -133,7 +159,7 @@ class RBCAgentCore(Player):
         self,
         sense_actions: List[Square],
         move_actions: List[chess.Move],
-        seconds_left: float,
+        seconds_left: float
     ) -> Optional[Square]:
         raise NotImplementedError
 
@@ -151,12 +177,14 @@ class RBCAgentCore(Player):
         self.boards = {
             board for board in map(partial(board_matches_sense, sense_result=sense_result), i) if board is not None
         }
+        if len(self.boards) == 0:
+            print('Board before sensing ', num_before, 'boards after sensing ', len(self.boards))
         self.logger.debug(f"There were {num_before} possible boards before sensing " f"and {len(self.boards)} after.")
-        print('There were', num_before, 'possible boards before sensing and', len(self.boards) ,'after.')
+        # print('There were', num_before, 'possible boards before sensing and', len(self.boards) ,'after.')
 
         # how many board were eliminated
-        board_set_reduction = ( num_before - len(self.boards)) / num_before 
-        print('percentage of eliminated boards ', board_set_reduction)
+        board_set_reduction = ( num_before - len(self.boards)) / num_before if num_before != 0 else 0
+        # print('percentage of eliminated boards ', board_set_reduction)
 
         # add the pieces in the sense result to our board for partial sensing strategy
         if len(self.boards) == 1:
@@ -176,7 +204,7 @@ class RBCAgentCore(Player):
         if chess.Move.null() not in move_actions:
             move_actions += [chess.Move.null()]
         
-        print('Choosing move for turn', self.turn_num ,' from ', len(move_actions), ' moves over', len(self.boards), 'boards with', seconds_left ,'seconds remaining.')
+        # print('Choosing move for turn', self.turn_num ,' from ', len(move_actions), ' moves over', len(self.boards), 'boards with', seconds_left ,'seconds remaining.')
 
         self.logger.debug(
             f"Choosing move for turn {self.turn_num} "
@@ -186,15 +214,17 @@ class RBCAgentCore(Player):
 
         with Timer(self.logger.debug, "choosing move"):
             # Pass the needed information to the decision-making function to choose a move
-            move_choice = self.move_strategy(move_actions, seconds_left)
+            move_choice = self.move_strategy(move_actions, seconds_left, self.board)
+            print('Chosen move ', move_choice)
 
         self.logger.debug(f"The chosen move was {move_choice}")
 
         # reconchess uses None for the null move, so correct the function output if that was our choice
+        
         return move_choice if move_choice != chess.Move.null() else None
 
 
-    def move_strategy(self, move_actions: List[chess.Move], seconds_left: float) -> Optional[chess.Move]:
+    def move_strategy(self, move_actions: List[chess.Move], seconds_left: float, board) -> Optional[chess.Move]:
         raise NotImplementedError
 
 
@@ -206,7 +236,7 @@ class RBCAgentCore(Player):
         capture_square: Optional[Square],
     ):
 
-        print('The requested move was', requested_move, 'and the taken move was', taken_move)
+        # print('The requested move was', requested_move, 'and the taken move was', taken_move)
         self.logger.debug(f"The requested move was {requested_move} and the taken move was {taken_move}.")
         if captured_opponent_piece:
             self.logger.debug(f"Move {taken_move} was a capture!")
@@ -217,6 +247,8 @@ class RBCAgentCore(Player):
             requested_move = chess.Move.null()
         if taken_move is None:
             taken_move = chess.Move.null()
+        print('requested move ', requested_move)
+        print('taken move ', taken_move)
 
         # Filter the possible board set to only boards on which the requested move would have resulted in the taken move
         # invalid board if --> the move is a capture but would not have happened in this board 
@@ -253,7 +285,7 @@ class RBCAgentCore(Player):
             f"before filtering and {len(self.boards)} after."
         )
 
-        print('There were', num_boards_before_filtering, 'possible boards before filtering with taken move and', len(self.boards), 'after.')
+        # print('There were', num_boards_before_filtering, 'possible boards before filtering with taken move and', len(self.boards), 'after.')
 
         # Re-initialize the set of boards for next turn (filled in while_we_wait and/or handle_opponent_move_result)
         self.next_turn_boards = defaultdict(set)
@@ -277,7 +309,7 @@ class RBCAgentCore(Player):
                 new_board_set, priority_boards = populate_next_board_set(
                     {self.boards.pop()},
                     self.color,
-                    rc_disable_pbar=True,
+                    rc_disable_pbar=self.rc_disable_pbar,
                 )
                 self.priority_boards |= priority_boards
                 for square in new_board_set.keys():

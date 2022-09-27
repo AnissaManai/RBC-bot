@@ -90,9 +90,10 @@ def generate_input_for_model(board: chess.Board, opponent_capture_square, sense_
         if sense_position != None: 
             row, col = get_row_col(sense_position, me == chess.BLACK)
             if row not in [0,7] and col not in [0,7]: 
-                for delta_rank in [1, 0, -1]:
-                    for delta_file in [-1, 0, 1]:
-                        board3d[plane_index][row + delta_rank][col + delta_file] = 1
+                # for delta_rank in [1, 0, -1]:
+                #     for delta_file in [-1, 0, 1]:
+                        # board3d[plane_index][row + delta_rank][col + delta_file] = 1
+                    board3d[plane_index][row][col] = 1
                 
         plane_index += 1
         

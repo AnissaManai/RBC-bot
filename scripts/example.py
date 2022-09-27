@@ -12,19 +12,23 @@ import chess
 from reconchess import LocalGame, play_local_game
 from reconchess.bots.trout_bot import TroutBot
 from reconchess.bots.random_bot import RandomBot
-from myBot import EruditeBot
+from reconchess.bots.attacker_bot import AttackerBot
+from myBot import selfPlaySensingWSTCKF, StrangefishWStockfish, SelfPlaySensingWSTRGF
+# from StrageFish2 import StrangeFish2
 
-from myBot import myBot
 
 def main(): 
-    white_bot_name, black_bot_name = 'RBC-bot', 'TroutBot',
+    white_bot_name, black_bot_name = 'TroutBot', 'RandomBot',
 
     game = LocalGame()
 
     try: 
         winner_color, win_reason, history = play_local_game( 
+            # StrangeFish2(),
+            selfPlaySensingWSTCKF(train=False),
             TroutBot(),
-            EruditeBot(), 
+            # StrangefishWStockfish(),
+            # RandomBot(),
             game = game
         )
 
@@ -41,7 +45,7 @@ def main():
 
     timestamp = datetime.now().strftime('%Y_%m_%d-%H_%M_%S')    
 
-    replay_path = '{}-{}-{}-{}.json'.format(white_bot_name, black_bot_name, winner, timestamp)
+    replay_path = 'games_history/{}-{}-{}-{}.json'.format(white_bot_name, black_bot_name, winner, timestamp)
     print('Saving replay to {}...'.format(replay_path))
     history.save(replay_path)
 

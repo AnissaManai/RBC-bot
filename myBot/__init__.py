@@ -1,2 +1,3 @@
-from .self_play_strategy import SelfPlayBot
-from .erudite_strategy import EruditeBot
+from .SP_Sensing_WSTRGF import SelfPlaySensingWSTRGF
+from .SP_Sensing_WSTCKF import selfPlaySensingWSTCKF
+from .stragefish_w_stockfish_move import StrangefishWStockfish

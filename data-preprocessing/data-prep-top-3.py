@@ -58,19 +58,6 @@ def get_game_data(boards, senses, capture_squares, player):
         # Color x 1
         if board.turn == chess.WHITE: board3d[14, :, :] = 1
 
-        # En Passant Square x 1
-        # if board.ep_square is not None: 
-        #     row, col = get_row_col(board.ep_square, mirror = True)
-        #     board3d[13, row, col] = 1
-        
-        
-        # Castling Rights for both sides x 2 x 2
-        # if board.has_kingside_castling_rights(me): board3d[14, :, :] = 1
-        # if board.has_queenside_castling_rights(me): board3d[15, :, :] = 1
-        # if board.has_kingside_castling_rights(you): board3d[16, :, :] = 1
-        # if board.has_queenside_castling_rights(you): board3d[17, :, :] = 1
-
-
         # capture square after opponent move 
         opponent_capture_square = None
         if player == "false":
@@ -86,20 +73,20 @@ def get_game_data(boards, senses, capture_squares, player):
 
 
         # Add history of sense locations of the last 5 steps
-        if idx > 0:
-            plane_index = 16
-            for i in range(1, 6): 
-                prev_sens_idx = idx - i
-                if(prev_sens_idx >= 0): 
-                    prev_sense = senses[prev_sens_idx]
+        # if idx > 0:
+        #     plane_index = 16
+        #     for i in range(1, 6): 
+        #         prev_sens_idx = idx - i
+        #         if(prev_sens_idx >= 0): 
+        #             prev_sense = senses[prev_sens_idx]
 
-                    if prev_sense != None: 
-                        row, col = get_row_col(prev_sense, flip = flip)
-                        if (row not in [0,7] and col not in [0,7]):
-                            for delta_rank in [1, 0, -1]:
-                                for delta_file in [-1, 0, 1]:
-                                    board3d[plane_index][row + delta_rank][col + delta_file] = 1
-                    plane_index += 1
+        #             if prev_sense != None: 
+        #                 row, col = get_row_col(prev_sense, flip = flip)
+        #                 if (row not in [0,7] and col not in [0,7]):
+        #                     for delta_rank in [1, 0, -1]:
+        #                         for delta_file in [-1, 0, 1]:
+        #                             board3d[plane_index][row + delta_rank][col + delta_file] = 1
+        #             plane_index += 1
 
         sense_square = 0
         if sense != None: 
