@@ -20,11 +20,13 @@ ENV PATH /opt/miniconda3/bin:$PATH
 
 # clone repository
 WORKDIR /
+
+ARG BUILD_TIMESTAMMP=unknown
 RUN git clone https://github.com/AnissaManai/RBC-bot.git
 
 WORKDIR /RBC-bot
 
-ARG BUILD_TIMESTAMMP=unknown
+
 
 # Create conda Environment usinng yml file
 RUN conda env create -f environment.yml python=3.6
