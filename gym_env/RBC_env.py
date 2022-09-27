@@ -1,40 +1,47 @@
+import os
+from re import S
 import numpy as np
+from stable_baselines3 import PPO
 import gym
 from gym import spaces
 import chess
 from typing import List, Optional
+from datetime import datetime
 
 from reconchess import LocalGame, Player, Game, Square
-from myBot import SelfPlayBot
+from myBot import selfPlaySensingWSTCKF, StrangefishWStockfish
+# from myBot import SelfPlaySensingWSTRGF
 from myBot.utilities.utils import generate_input_for_model, revert_sense_square
 
 class RBCEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, model_dir):
 
         self.action_space = spaces.Discrete(36)
         self.observation_space = spaces.Box(low=0, high=1, shape=(21, 8,8), dtype = np.uint8)
+        self.model_dir = model_dir
 
-        self.reward_range = (-200, 200)
+        self.reward_range = (-1100, 1100)
 
-        self.current_episode = 0
+        self.num_episode = 0
+        self.num_step = 0
+        self.current_learning_player = chess.WHITE
         self.success_episode = []
 
+        # self.white_player:Player = selfPlaySensingWSTCKF(train = True)
+        # self.black_player:Player = selfPlaySensingWSTCKF(train = True)
 
-        self.white_player:Player = SelfPlayBot(rc_disable_pbar=True)
-        self.black_player:Player = SelfPlayBot(rc_disable_pbar=True)
+        self.done = False
 
-        self.players = [self.black_player, self.white_player]
-
-
-        self.white_name = self.white_player.__class__.__name__
-        self.black_name = self.black_player.__class__.__name__
-
+    def reset(self):
+        
         self.sense_result = None
         self.opponent_capture_square = None
         self.opt_enemy_capture_square = None
+
         self.num_captured_white_pieces = 0
         self.num_captured_black_pieces = 0
+
         self.black_sense_history = [None, None, None, None, None]
         self.white_sense_history = [None, None, None, None, None]
 
@@ -43,37 +50,77 @@ class RBCEnv(gym.Env):
         self.board_after_sense = None
         self.taken_move_from_square = None
 
-    def reset(self):
-        # print('reset')
-        self.game = LocalGame()
-        self.game.store_players(self.white_name, self.black_name)
-        self.board_white_obs= chess.Board(self.game.board.copy().epd(en_passant='xfen'))
-        self.board_black_obs= chess.Board(self.game.board.copy().epd(en_passant='xfen'))
-        self.board_black_obs.turn = chess.BLACK
-        # self.board = self.game.board.copy()
+        self.done = False
 
-        self.white_player.handle_game_start(chess.WHITE, self.board_white_obs, self.black_name)
-        self.black_player.handle_game_start(chess.BLACK, self.board_black_obs, self.white_name)
-        self.game.start()
+        self.best_model = PPO.load(os.path.join(self.model_dir, "self_play_best_model"))
 
-        self.current_step = 0
+        #Alternate between players after each episode
+        if self.num_episode % 2 == 0: 
+            self.current_learning_player = chess.WHITE 
 
-        self.board_set_reduction = 0
+            self.white_player:Player = selfPlaySensingWSTCKF(train = True)
+            # self.black_player:Player = StrangefishWStockfish()
+            self.black_player:Player = selfPlaySensingWSTCKF(train = True)
 
-        return self._next_observation(self.opponent_capture_square, self.white_sense_history, chess.WHITE)
+            self.players = [self.black_player, self.white_player]
 
+            self.white_name = self.white_player.__class__.__name__
+            self.black_name = self.black_player.__class__.__name__
+            
+            self.game = LocalGame()
+            self.game.store_players(self.white_name, self.black_name)
 
-    def _next_observation(self, opt_capture_square, sense_history, next_player): 
-        
-        self.board_before_sense = self.board_white_obs.copy() if next_player == chess.WHITE else self.board_black_obs.copy()
+            self.board_white_obs= chess.Board(self.game.board.copy().epd(en_passant='xfen'))
+            self.board_black_obs= chess.Board(self.game.board.copy().epd(en_passant='xfen'))
 
+            # setting the turn in the observation board of black player to black. 
+            self.board_black_obs.turn = chess.BLACK
 
-        # Use current player's move result to update next player's observation
-        if opt_capture_square != None: 
-            self.board_before_sense.remove_piece_at(opt_capture_square)
+            self.white_player.handle_game_start(chess.WHITE, self.board_white_obs, self.black_name)
+            self.black_player.handle_game_start(chess.BLACK, self.board_black_obs, self.white_name)
+            self.game.start()
+            sense_history = self.white_sense_history
+        else: 
+            self.current_learning_player = chess.BLACK
 
-        obs = generate_input_for_model(self.board_before_sense, opt_capture_square, sense_history)
-        return obs
+            # self.white_player:Player = StrangefishWStockfish() 
+            self.white_player:Player = selfPlaySensingWSTCKF(train = True)
+            self.black_player:Player = selfPlaySensingWSTCKF(train = True)
+
+            self.players = [self.black_player, self.white_player]
+
+            self.white_name = self.white_player.__class__.__name__
+            self.black_name = self.black_player.__class__.__name__
+            
+            self.game = LocalGame()
+            self.game.store_players(self.white_name, self.black_name)
+
+            self.board_white_obs= chess.Board(self.game.board.copy().epd(en_passant='xfen'))
+            self.board_black_obs= chess.Board(self.game.board.copy().epd(en_passant='xfen'))
+
+            # setting the turn in the observation board of black player to black. 
+            self.board_black_obs.turn = chess.BLACK
+
+            self.white_player.handle_game_start(chess.WHITE, self.board_white_obs, self.black_name)
+            self.black_player.handle_game_start(chess.BLACK, self.board_black_obs, self.white_name)
+            self.game.start()
+
+            sense_history = self.black_sense_history
+
+            # if current player is black player, play the first turn of the white player before calling step function 
+            obs = self._next_observation(chess.WHITE, self.opponent_capture_square, self.white_sense_history)
+            sense, _states = self.best_model.predict(obs)
+            sense_action = revert_sense_square(sense, flip=False)
+            sense_actions = [sense_action]
+            # sense_actions = self.game.sense_actions()
+            self.play_turn(self.game, self.players[self.game.turn], sense_actions, end_turn_last=True)
+            self.white_sense_history.insert(0, sense)
+            self.white_sense_history.pop()
+
+        # self.board_set_reduction = 0
+        print('+++++++++++++ EPISODE ', self.num_episode ,'as ', self.current_learning_player, '+++++++++++')
+
+        return self._next_observation(self.current_learning_player, self.opponent_capture_square, sense_history)
 
 
     def notify_opponent_move_results(self, game: Game, player: Player):
@@ -111,6 +158,7 @@ class RBCEnv(gym.Env):
         if taken_move != None:
             self.taken_move_from_square = taken_move.from_square
 
+        # print('taken move', taken_move)
         if not end_turn_last:
             game.end_turn()
 
@@ -120,8 +168,13 @@ class RBCEnv(gym.Env):
         if  self.opt_enemy_capture_square is not None: 
             if player.color == chess.WHITE:
                 self.num_captured_black_pieces += 1  
+                # print('num captured black pieces ', self.num_captured_black_pieces)
             else:
                 self.num_captured_white_pieces += 1 
+                # print('num captured white pieces ', self.num_captured_white_pieces)
+
+
+        
 
         if end_turn_last:
             game.end_turn()
@@ -150,142 +203,145 @@ class RBCEnv(gym.Env):
 
         self.notify_opponent_move_results(game, player)
 
+        # print('board before sense ','\n', self.board_before_sense)
+
         self.play_sense(game, player, sense_action, move_actions)
 
         # get board after sense 
-        self.board_after_sense =  self.board_white_obs if self.game.turn == chess.WHITE else self.board_black_obs
+        self.board_after_sense =  self.board_white_obs.copy() if self.current_learning_player == chess.WHITE else self.board_black_obs.copy()
         # print('board after sense ', '\n',  self.board_after_sense)
 
         self.play_move(game, player, move_actions, end_turn_last)
 
 
-    def get_reward(self, opponent_color): 
+    def get_reward(self, player_color): 
         piece_at_sense_square: Optional[chess.Piece] = self.sense_result[4][1]
         reward = 0
         
         # if we sensed on our piece 
         if piece_at_sense_square != None:
-            if piece_at_sense_square.color != opponent_color:
-                reward -= 0.1
-
+            if piece_at_sense_square.color == player_color:
+                reward -= 5
 
         # Add reward if there is a change in the sensed squares from before to after sensing
-        # reward based on sensed piece's values
+        # reward based on sensed pieces values
+        # print('sense result ', self.sense_result)
         for square, piece in self.sense_result:
             if self.board_before_sense.piece_at(square) != self.board_after_sense.piece_at(square):
                 # if it's not a change caused by current player move
+                # print('piece', piece)
                 if piece == None and square != self.taken_move_from_square:
                     reward += 1
                 elif piece != None:
                     piece_color = piece.color
                     piece_type = piece.piece_type
-                    if piece_color == opponent_color: 
+                    if piece_color != player_color: 
                         if piece_type == chess.PAWN:
-                            reward += 1  
+                            reward += 5  
                         elif piece_type == chess.KNIGHT:
-                            reward += 3
+                            reward += 5
                         elif piece_type == chess.BISHOP:
-                            reward += 3
+                            reward += 5
                         elif piece_type == chess.ROOK: 
                             reward += 5
                         elif piece_type == chess.QUEEN: 
-                            reward += 9
+                            reward += 10
                         elif piece_type == chess.KING: 
                                 # Encourage the agent to sense the king as the number of opt pieces is decreasing
-                                num_pieces_left = self.num_captured_white_pieces if opponent_color == chess.WHITE else self.num_captured_black_pieces
-                                print('KING REWARD ', 1 - (num_pieces_left / 16) ** 0.5)
+                                num_pieces_left = self.num_captured_white_pieces if player_color == chess.WHITE else self.num_captured_black_pieces
+                                # print('KING REWARD ', 1 - (num_pieces_left / 16) ** 0.5)
                                 reward += (1 - (num_pieces_left / 16) ** 0.5)
 
                 
-                # print('there is a change in board and reward is ', reward)
+                # print('there is a change in the board and reward is ', reward)
         
         # print('reward board set reduction ',  self.board_set_reduction)
         # Reward for board set reduction 
-        reward += self.board_set_reduction
-
-        
+        # reward += self.board_set_reduction
 
         return reward
 
+    def _next_observation(self, player, opt_capture_square, sense_history): 
+        self.board_before_sense = self.board_white_obs.copy() if player == chess.WHITE else self.board_black_obs.copy()
+
+        # Use current player's move result to update next player's observation
+        if opt_capture_square != None: 
+            self.board_before_sense.remove_piece_at(opt_capture_square)
+
+        obs = generate_input_for_model(self.board_before_sense, opt_capture_square, sense_history)
+        return obs
+    
+    def play_next_step(self, action, player_color, player_sense_history, enemy_sense_history, flip):
+        sense_action = revert_sense_square(action, flip)
+        reward = 0
+        # print('Starting turn of ',self.game.turn)
+        # print('Sense action ', sense_action)
+        self.play_turn(self.game, self.players[self.game.turn], [sense_action], end_turn_last=True)
+        # print('Board after move ', '\n', self.board_white_obs if player_color == chess.WHITE else self.board_black_obs)
+        reward = self.get_reward(player_color)
+        player_sense_history.insert(0, action)
+        player_sense_history.pop()
+
+        obs = self._next_observation(self.game.turn, self.opt_enemy_capture_square, self.black_sense_history)
+        sense, _states = self.best_model.predict(obs)
+        sense_action = revert_sense_square(sense, not flip)
+        sense_actions = [sense_action]
+        # print('Starting turn of ',self.game.turn)
+        # print('Sense action ', sense_action)
+        # sense_actions = self.game.sense_actions()
+        self.play_turn(self.game, self.players[self.game.turn], sense_actions, end_turn_last=True)
+        # print('Board after move ', '\n', self.board_black_obs if player_color == chess.WHITE else self.board_white_obs)
+        enemy_sense_history.insert(0, sense)
+        enemy_sense_history.pop()
+        obs = self._next_observation(player_color, self.opt_enemy_capture_square, self.white_sense_history)
+
+        return obs, reward
 
 
+    
     def step(self, action):
-        current_player: SelfPlayBot = self.players[self.game.turn]
-        current_player_color = self.game.turn
-        opponent_color = not self.game.turn
-        action = revert_sense_square(action, current_player_color == chess.BLACK)
-        sense_action = [action]
         
-        print('PLAY TURN ', current_player_color)
-        print('sense action ', action)
+        if self.current_learning_player == chess.WHITE: 
+            obs, reward = self.play_next_step(action, chess.WHITE, self.white_sense_history, self.black_sense_history, False)
 
-        # board_before_step = self.board_white_obs if current_player_color == chess.WHITE else self.board_black_obs
+        elif self.current_learning_player == chess.BLACK: 
+            obs, reward = self.play_next_step(action, chess.BLACK, self.black_sense_history, self.white_sense_history, True)
 
-        # print('board before sense of ', current_player_color, '\n', self.board_before_sense)
-        
-        self.play_turn(self.game, current_player, sense_action, end_turn_last=True)
-        self.board_after_step =  self.board_white_obs if current_player_color == chess.WHITE else self.board_black_obs
-
-        # print('board after turn of ', current_player_color, '\n',  self.board_after_step)
-
-        # update the sense history of current player 
-        # get the observation for the next player 
-        if current_player_color == chess.WHITE: 
-            self.white_sense_history.insert(0, action)
-            self.white_sense_history.pop()
-            obs = self._next_observation(self.opt_enemy_capture_square, self.black_sense_history, chess.BLACK)
-
-            # print('opt enemy capture square ', self.opt_enemy_capture_square)
-            # print('sense history white ', self.white_sense_history)
-        else: 
-            self.black_sense_history.insert(0, action)
-            self.black_sense_history.pop()
-            obs = self._next_observation(self.opt_enemy_capture_square, self.white_sense_history, chess.WHITE)
-
-            # print('opt enemy capture square ', self.opt_enemy_capture_square)
-            # print('sense history white ', self.black_sense_history)
-
-        # print('sense result ', self.sense_result)
-        reward = self.get_reward(opponent_color)
-
-        print('final reward ', reward)
+        # print('Reward ', reward)
         
 
-        
-        done = False
         if self.game.is_over():
-            done = True
-            if self.game.get_winner_color() == current_player_color: 
-                print(f'Player {current_player_color} won')
+            self.done = True
+            if self.game.get_winner_color() == self.current_learning_player: 
+                print(f'Current Player {self.current_learning_player} won')
                 reward += 100
-            elif self.game.get_winner_color() == opponent_color:
-                print(f'Player {current_player_color} Lost')
-                reward -= 100
             else:
-                reward -= 50
+                print(f'Current Player {self.current_learning_player} Lost')
+                reward -= 100
             
 
-        if done: 
+        if self.done: 
             winner_color = self.game.get_winner_color()
             win_reason = self.game.get_win_reason()
             game_history = self.game.get_game_history()
-            print('done! winner is  ', winner_color)
+            # print('final reward ', reward)
             self.render_episode(winner_color)
-            self.current_episode += 1
-            
+            self.num_episode += 1
             self.white_player.handle_game_end(winner_color, win_reason, game_history)
             self.black_player.handle_game_end(winner_color, win_reason, game_history)
 
+            
+        self.num_step += 1
 
-        return obs, reward, done, {}
+        return obs, reward, self.done, {}
 
 
 
     def render_episode(self, winner_color):
         self.success_episode.append('Winner is ' + str(winner_color))
 
-        file = open('..\\self-play-log\\render.txt', 'a')
+        file = open('C:\\Users\\aniss\\OneDrive\\Dokumente\\Uni\\Semester4\\RBC\\RBC-Agent\\self-play-log\\render.txt', 'a')
         file.write('-------------------------------------------\n')
-        file.write(f'Episode number {self.current_episode}\n')
-        file.write(f'{self.success_episode[-1]} in {self.current_step} steps\n')
+        file.write(f'Episode number {self.num_episode}\n')
+        file.write(f'{self.success_episode[-1]} in {self.num_step} steps\n')
         file.close()
