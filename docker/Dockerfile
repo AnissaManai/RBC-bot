@@ -27,7 +27,7 @@ WORKDIR /RBC-bot
 # Create conda Environment usinng yml file
 RUN conda env create -f environment.yml python=3.6
 
-ARG BUILD_TIMESTAMMP=unknown
+
 	
 WORKDIR /
 #### Compile stockfish. outputs to /Stockfish/src/stockfish ####
@@ -42,7 +42,7 @@ RUN wget https://github.com/ianfab/Fairy-Stockfish/releases/latest/download/fair
 
 ENV FAIRYSTOCKFISH_EXECUTABLE fairy-stockfish-largeboard_x86-64-bmi2
 
-# ARG BUILD_TIMESTAMMP=unknown
+ARG BUILD_TIMESTAMMP=unknown
 
 WORKDIR /RBC-bot
 RUN git pull
