@@ -21,16 +21,13 @@ ENV PATH /opt/miniconda3/bin:$PATH
 # clone repository
 WORKDIR /
 
-ARG BUILD_TIMESTAMMP=unknown
 RUN git clone https://github.com/AnissaManai/RBC-bot.git
 
 WORKDIR /RBC-bot
 
 
-
 # Create conda Environment usinng yml file
 RUN conda env create -f environment.yml python=3.6
-
 
 	
 WORKDIR /
@@ -48,6 +45,7 @@ RUN wget https://github.com/ianfab/Fairy-Stockfish/releases/latest/download/fair
 
 ENV FAIRYSTOCKFISH_EXECUTABLE /fairy-stockfish-largeboard_x86-64-bmi2
 
+ARG BUILD_TIMESTAMMP=unknown
 
 WORKDIR /RBC-bot
 RUN git pull

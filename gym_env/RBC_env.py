@@ -7,6 +7,7 @@ from gym import spaces
 import chess
 from typing import List, Optional
 from datetime import datetime
+import tqdm
 
 from reconchess import LocalGame, Player, Game, Square
 from myBot import selfPlaySensingWSTCKF, StrangefishWStockfish
@@ -118,7 +119,7 @@ class RBCEnv(gym.Env):
             self.white_sense_history.pop()
 
         # self.board_set_reduction = 0
-        print('+++++++++++++ EPISODE ', self.num_episode ,'as ', self.current_learning_player, '+++++++++++')
+        # print('+++++++++++++ EPISODE ', self.num_episode ,'as ', self.current_learning_player, '+++++++++++')
 
         return self._next_observation(self.current_learning_player, self.opponent_capture_square, sense_history)
 
@@ -313,10 +314,10 @@ class RBCEnv(gym.Env):
         if self.game.is_over():
             self.done = True
             if self.game.get_winner_color() == self.current_learning_player: 
-                print(f'Current Player {self.current_learning_player} won')
+                # print(f'Current Player {self.current_learning_player} won')
                 reward += 100
             else:
-                print(f'Current Player {self.current_learning_player} Lost')
+                # print(f'Current Player {self.current_learning_player} Lost')
                 reward -= 100
             
 
