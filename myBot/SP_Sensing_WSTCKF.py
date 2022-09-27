@@ -6,7 +6,7 @@ from chess import Board, Move
 import torch
 
 import chess.engine
-from stockfish import Stockfish
+# from stockfish import Stockfish
 from reconchess import *
 
 from stable_baselines3 import PPO
