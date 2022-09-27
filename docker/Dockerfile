@@ -37,12 +37,13 @@ RUN wget https://www.dropbox.com/sh/75gzfgu7qo94pvh/AAAtWIKGvQvGih-dz6xb-CHDa/St
 
 ENV STOCKFISH_EXECUTABLE /stockfish-11-linux/Linux/stockfish_20011801_x64_bmi2
 
+ARG BUILD_TIMESTAMMP=unknown
+
 RUN wget https://github.com/ianfab/Fairy-Stockfish/releases/latest/download/fairy-stockfish-largeboard_x86-64-bmi2 && \
 	chmod +x fairy-stockfish-largeboard_x86-64-bmi2
 
-ENV FAIRYSTOCKFISH_EXECUTABLE fairy-stockfish-largeboard_x86-64-bmi2
+ENV FAIRYSTOCKFISH_EXECUTABLE /fairy-stockfish-largeboard_x86-64-bmi2
 
-ARG BUILD_TIMESTAMMP=unknown
 
 WORKDIR /RBC-bot
 RUN git pull
