@@ -1,9 +1,12 @@
 import random
+from dataclasses import dataclass
+from time import sleep, time
 from typing import List, Optional, Tuple
 from chess import Board, Move
 import torch
 
 import chess.engine
+# from stockfish import Stockfish
 from reconchess import *
 
 from stable_baselines3 import PPO
@@ -18,7 +21,7 @@ import os
 STOCKFISH_ENV_VAR = "FAIRYSTOCKFISH_EXECUTABLE"
 
 
-class selfPlaySensingWSTCKF(Player):
+class Random(Player):
     """
     TODO: add description of the strategy
     """
@@ -45,29 +48,8 @@ class selfPlaySensingWSTCKF(Player):
 
     def choose_sense(self, sense_actions: List[Square], move_actions: List[Move], seconds_left: float) -> \
             Optional[Square]:
-        if self.train: 
-            return sense_actions[0]
-        else:
-            obs = generate_input_for_model(self.board, self.capture_square, self.sense_history)
-            
-
-            # _ , prediction = torch.max(model(obs) , 1) 
-            # prediction = prediction.item()
-            
-            model_dir = 'models'
-            model_path = os.path.join(model_dir, "self_play_best_model")
-
-            model = PPO.load(model_path)
-            prediction, _states = model.predict(obs, deterministic = True)
-
-            flip = self.color == chess.BLACK
-            sense = revert_sense_square(prediction, flip=flip)
-            # print('sense ', sense)
-
-            self.sense_history.insert(0, sense)
-            self.sense_history.pop()
-            
-            return int(sense)
+        
+        return random.choice(sense_actions)
 
     def handle_sense_result(self, sense_result: List[Tuple[Square, Optional[chess.Piece]]]):
         # add the pieces in the sense result to our board

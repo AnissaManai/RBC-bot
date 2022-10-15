@@ -7,21 +7,18 @@ import torch.nn.functional as F
 from abc import ABCMeta
 
 
-class RBCModel(nn.Module, metaclass=ABCMeta):
+class RBCModelSL(nn.Module, metaclass=ABCMeta):
     def training_step(self, criterion,  data, labels):
-        latent_pi, latent_vf , _= self._get_latent(data)   # Generate predictions
-        prediction = self.action_net(latent_pi)
-        loss = criterion(prediction, labels) # Calculate loss
-        _, preds = torch.max(prediction, dim=1)
-        acc = torch.tensor(torch.sum(preds == labels).item() / len(preds)) # Calculate accuracy
-        return {'train_loss':loss, 'train_acc': acc}
+        out = self(data)   # Generate predictions
+        loss = criterion(out, labels) # Calculate loss
+        return loss
 
     def validation_step(self, criterion, data, labels):
-        latent_pi, latent_vf , _= self._get_latent(data)   # Generate predictions
-        prediction = self.action_net(latent_pi)
-        loss = criterion(prediction, labels)   # Calculate loss
-        _, preds = torch.max(prediction, dim=1)
+        out = self(data)                    # Generate predictions
+        loss = criterion(out, labels)   # Calculate loss
+        _, preds = torch.max(out, dim=1)
         acc = torch.tensor(torch.sum(preds == labels).item() / len(preds)) # Calculate accuracy
+        
         return {'val_loss': loss.detach(), 'val_acc': acc}
         
     def validation_epoch_end(self, outputs):

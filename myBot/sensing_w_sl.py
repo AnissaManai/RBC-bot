@@ -1,9 +1,12 @@
 import random
+from dataclasses import dataclass
+from time import sleep, time
 from typing import List, Optional, Tuple
 from chess import Board, Move
 import torch
 
 import chess.engine
+# from stockfish import Stockfish
 from reconchess import *
 
 from stable_baselines3 import PPO
@@ -17,8 +20,7 @@ import os
 
 STOCKFISH_ENV_VAR = "FAIRYSTOCKFISH_EXECUTABLE"
 
-
-class selfPlaySensingWSTCKF(Player):
+class SensingSL(Player):
     """
     TODO: add description of the strategy
     """
@@ -50,19 +52,30 @@ class selfPlaySensingWSTCKF(Player):
         else:
             obs = generate_input_for_model(self.board, self.capture_square, self.sense_history)
             
+            # print('input shape ', obs.shape)
+            
+            # obs = torch.from_numpy(obs)
+            # obs = obs.float()
+            # obs = obs[None, :, :, :]
+            # model_dir = 'models/sl-model'
+            # model_path = os.path.join(model_dir, "top3-partial")
+            # if torch.cuda.is_available():
+            #     model = torch.load(model_path)
+            # else: 
+            #     model = torch.load(model_path, map_location=torch.device('cpu'))
 
             # _ , prediction = torch.max(model(obs) , 1) 
             # prediction = prediction.item()
             
-            model_dir = 'models'
-            model_path = os.path.join(model_dir, "self_play_best_model")
+            model_dir = 'models-old/sl-model'
+            model_path = os.path.join(model_dir, "ppo-partial_pretrain")
 
             model = PPO.load(model_path)
             prediction, _states = model.predict(obs, deterministic = True)
 
             flip = self.color == chess.BLACK
             sense = revert_sense_square(prediction, flip=flip)
-            # print('sense ', sense)
+            print('sense ', sense)
 
             self.sense_history.insert(0, sense)
             self.sense_history.pop()
