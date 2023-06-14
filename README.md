@@ -4,5 +4,5 @@ The Source code for creating, training and testing a bot to play reconnaissance-
 This work particularly focus on the sensing part of the game. 
 
 A new RBC environment is developed to be used with the stable-baselines reinforcement learning algorithms. 
-A model was first pretrained using supervised learning and some historical game data. Then it was trained further using a reinforcement learning algorithm called Proximal Policy Optimization (PPO) and self-play.
+A model is first pretrained using supervised learning and some historical game data. Then it is trained further using a reinforcement learning algorithm called Proximal Policy Optimization (PPO) and self-play.
 The neural network architecture used for the training is based on the Alpha-Zero architecture.
