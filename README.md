@@ -1,5 +1,5 @@
 # RBC-bot
-The Source code for creating, training and testing a bot to play reconnaissance-blind-chess(RBC), a variant of chess with imperfect information. In this version a player cannot see the opponent's pieces but can reason about their location through sensing and other observations. 
+The Source code for creating, training and testing a bot to play reconnaissance-blind-chess(RBC), a variant of chess with imperfect information. In this version a player cannot see the opponent's pieces but can reason about their location through sensing and other observations. For more information about RBC see [https://rbc.jhuapl.edu/](https://rbc.jhuapl.edu/) .
 
 This work particularly focus on the sensing part of the game. 
 
